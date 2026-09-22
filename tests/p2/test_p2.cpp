@@ -65,8 +65,8 @@ static void save_conv(const Conversation& conv, const std::string& path) {
 }
  
 TEST(HarnessStopsAtSentinel) {
-    // chunk sizes 1..26 split the sentinel at every possible position
-    for (int chunk = 1; chunk <= 26; ++chunk) {
+
+        for (int chunk = 1; chunk <= 26; ++chunk) {
         write_file("tmp_sentinel.script",
             "chunk: " + std::to_string(chunk) + "\n"
             "role: assistant\nBye.<|end_conversation|>\n---\n"
@@ -80,9 +80,9 @@ TEST(HarnessStopsAtSentinel) {
         StopReason r = h.run(in, out);
         assert(r.kind == StopReason::Kind::Sentinel);
         assert(out.text.find("Bye.") != std::string::npos);
-        assert(out.text.find("<|") == std::string::npos);   // sentinel never printed
+        assert(out.text.find("<|") == std::string::npos);  
         assert(out.text.find("|>") == std::string::npos);
-        assert(h.conversation().size() == 2);                // stopped after one turn
+        assert(h.conversation().size() == 2);             
         assert(h.conversation().at(1).content() == "Bye.<|end_conversation|>");
     }
     std::remove("tmp_sentinel.script");
@@ -93,7 +93,6 @@ TEST(ScannerCatchesSentinelAtEveryBoundary) {
     const std::string sentinel = "<|end_conversation|>";
     const std::string text = "Goodbye." + sentinel;
 
-    // whole text split into two chunks, at every possible point
     for (std::size_t split = 0; split <= text.size(); ++split) {
         SentinelScanner scanner(sentinel);
         auto out1 = scanner.feed(text.substr(0, split));
@@ -103,7 +102,6 @@ TEST(ScannerCatchesSentinelAtEveryBoundary) {
         assert(out1.safe_text + out2.safe_text == "Goodbye.");
     }
 
-    // one character at a time
     SentinelScanner scanner(sentinel);
     std::string printed;
     bool found = false;
@@ -120,7 +118,7 @@ TEST(ScannerFalseAlarms) {
     const std::string sentinel = "<|end_conversation|>";
     const std::string inputs[] = {
         "<|end_world|>",
-        "<|end_conversation|",      // missing the final '>'
+        "<|end_conversation|",      
         "<|end_conversation",
         "<<<|end_ hello |>",
     };
@@ -130,7 +128,7 @@ TEST(ScannerFalseAlarms) {
         auto b = scanner.flush();
         assert(!a.sentinel_found);
         assert(!b.sentinel_found);
-        assert(a.safe_text + b.safe_text == text);   // nothing lost, nothing changed
+        assert(a.safe_text + b.safe_text == text);   
     }
 }
 
@@ -138,8 +136,8 @@ TEST(ScannerBoundedMemory) {
     const std::string sentinel = "<|end_conversation|>";
     SentinelScanner scanner(sentinel);
 
-    const std::string pattern = "<|end_";             // adversarial: looks like a sentinel start, never completes
-    const std::size_t total = 4 * 1024 * 1024;         // 4 MB, one byte at a time
+    const std::string pattern = "<|end_";         
+    const std::size_t total = 4 * 1024 * 1024;       
     std::size_t emitted = 0;
 
     for (std::size_t fed = 1; fed <= total; ++fed) {
@@ -147,13 +145,13 @@ TEST(ScannerBoundedMemory) {
         auto out = scanner.feed(std::string(1, ch));
         assert(!out.sentinel_found);
         emitted += out.safe_text.size();
-        // characters still held back = fed - emitted, and that is pending_'s size
-        assert(fed - emitted <= sentinel.size() - 1);
+
+            assert(fed - emitted <= sentinel.size() - 1);
     }
 
     auto rest = scanner.flush();
     emitted += rest.safe_text.size();
-    assert(emitted == total);                          // every byte came out exactly once
+    assert(emitted == total);                          
 }
 
 TEST(EmptyConversation) {
@@ -194,11 +192,11 @@ TEST(CopyIsDeep) {
     a.append(Message(Role::Assistant, "hello"));
 
     Conversation b = a;
-    assert(b.begin() != a.begin());          // different blocks
+    assert(b.begin() != a.begin());          
     assert(b.size() == 2);
-    assert(b.at(1).content() == "hello");    // same contents
+    assert(b.at(1).content() == "hello");    
 
-    a.append(Message(Role::User, "more"));   // changing a must not affect b
+    a.append(Message(Role::User, "more"));   
     assert(a.size() == 3);
     assert(b.size() == 2);
 }
@@ -215,7 +213,7 @@ TEST(CopyAssignmentIsDeep) {
     assert(b.size() == 1);
     assert(b.at(0).content() == "hi");
 
-    b = b;                                   // self-assignment must not break anything
+    b = b;                                 
     assert(b.size() == 1);
     assert(b.at(0).content() == "hi");
 }
@@ -227,12 +225,12 @@ TEST(MoveStealsAndEmptiesSource) {
     const Message* p = a.begin();
 
     Conversation b = std::move(a);
-    assert(b.begin() == p);                  // stole the same block
+    assert(b.begin() == p);                  
     assert(b.size() == 2);
-    assert(a.size() == 0);                   // source is empty
+    assert(a.size() == 0);               
     assert(a.begin() == nullptr);
 
-    a.append(Message(Role::User, "reuse"));  // source is still usable
+    a.append(Message(Role::User, "reuse"));   
     assert(a.size() == 1);
 }
 
@@ -263,7 +261,7 @@ TEST(GrowthDoublesAndKeepsData) {
         }
     }
     assert(c.size() == 100);
-    assert(reallocations == 8);              // capacities 1,2,4,8,16,32,64,128
+    assert(reallocations == 8);             
     for (int i = 0; i < 100; i++) {
         assert(c.at(i).content() == "m" + std::to_string(i));
     }
