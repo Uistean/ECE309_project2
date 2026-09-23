@@ -2,13 +2,13 @@
 
 This is the starter repo for Project 2 (see the spec for full details).
 
-## What's provided vs. what's yours
+## What's Mine vs. what's given
 
 Everything under `include/model/`, `include/harness/`, `src/model_client.cpp`,
 `src/scripted_client.cpp`, `src/replay_client.cpp`, `src/harness.cpp`, and
-`src/main.cpp` is given, working code — read it, don't modify it.
+`src/main.cpp` is given, working code — read it, I have not modified it.
 
-You write:
+I wrote:
 
 - `include/core/message.h` (+ optional `src/message.cpp`)
 - `include/core/conversation.h` / `src/conversation.cpp`
